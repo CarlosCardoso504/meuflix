@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MeuFlix - Sobre o projeto</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="header">
+    <a href="index.html" class="logo">MEUFLIX</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Início</a></li>
+      <li><a href="sobre.html">Sobre</a></li>
+      <li><a href="add.html" class="btn-add">+ Adicionar vídeo</a></li>
+    </ul>
+  </header>
+
+  <main class="sobre-wrapper">
+    <h1>Sobre o MeuFlix</h1>
+    <p>
+      O MeuFlix é uma plataforma de streaming de vídeos próprios, inspirada visualmente na Netflix,
+      desenvolvida como simulação da infraestrutura de tecnologia de uma startup. Qualquer pessoa pode
+      subir um título, uma capa e o seu próprio vídeo, sem depender de serviços externos como o YouTube.
+    </p>
+
+    <h2>Equipe</h2>
+    <p>
+      <!-- EDITE AQUI com o nome da equipe e integrantes -->
+      <span class="team-tag">Nome da equipe: [PREENCHER]</span>
+      <span class="team-tag">Integrante 1: [PREENCHER]</span>
+      <span class="team-tag">Integrante 2: [PREENCHER]</span>
+      <span class="team-tag">Integrante 3: [PREENCHER]</span>
+    </p>
+
+    <h2>Tecnologias usadas</h2>
+    <ul>
+      <li><strong>Front-end:</strong> HTML5, CSS3 e JavaScript puro (sem frameworks), com layout responsivo inspirado no estilo Netflix.</li>
+      <li><strong>Back-end:</strong> Node.js com o framework Express.js, responsável pela API REST que cadastra e lista os vídeos.</li>
+      <li><strong>Banco de dados:</strong> PostgreSQL, armazenando título, descrição e o caminho dos arquivos de cada vídeo.</li>
+      <li><strong>Upload de arquivos:</strong> biblioteca Multer, que recebe a imagem de capa e o vídeo enviados pelo formulário.</li>
+    </ul>
+
+    <h2>Como foi feito</h2>
+    <p>
+      O projeto foi construído em três camadas. A camada de <em>apresentação</em> é um site estático
+      (HTML/CSS/JS) que consome uma API. A camada de <em>aplicação</em> é um servidor Node.js/Express
+      que expõe rotas para listar vídeos (<code>GET /api/videos</code>), buscar um vídeo específico
+      (<code>GET /api/videos/:id</code>) e cadastrar um novo vídeo (<code>POST /api/videos</code>),
+      recebendo a imagem e o vídeo via upload multipart. A camada de <em>dados</em> é um banco
+      PostgreSQL, onde cada vídeo cadastrado vira uma linha na tabela <code>videos</code>. Todo o código
+      foi versionado e implantado em um provedor de nuvem, conforme detalhado abaixo.
+    </p>
+
+    <h2>Infraestrutura utilizada</h2>
+    <p>Para colocar o sistema no ar, simulando a infraestrutura de uma empresa real, foram usados os seguintes componentes:</p>
+
+    <div class="infra-grid">
+      <div class="infra-card">
+        <h3>Servidor</h3>
+        <p>Web Service Linux (container Node.js) hospedado na Render, responsável por rodar a aplicação Express e servir a API e os arquivos estáticos.</p>
+      </div>
+      <div class="infra-card">
+        <h3>DNS</h3>
+        <p>Gerenciado pela Render através do domínio padrão <code>meuflix.onrender.com</code>, com a opção de apontar um domínio próprio via Cloudflare DNS.</p>
+      </div>
+      <div class="infra-card">
+        <h3>Serviço Web</h3>
+        <p>Node.js + Express.js, expondo uma API REST (JSON) e servindo o front-end estático na mesma aplicação.</p>
+      </div>
+      <div class="infra-card">
+        <h3>Banco de Dados</h3>
+        <p>PostgreSQL gerenciado (Render Postgres), armazenando os metadados de cada vídeo publicado na plataforma.</p>
+      </div>
+      <div class="infra-card">
+        <h3>Firewall</h3>
+        <p>Proteção de borda via Cloudflare (WAF e mitigação de DDoS) somada ao firewall de rede interno da própria Render, que isola o serviço da internet pública.</p>
+      </div>
+      <div class="infra-card">
+        <h3>Nuvem</h3>
+        <p>Render.com, uma plataforma de nuvem (PaaS) que executa a aplicação sobre infraestrutura da AWS, oferecendo deploy automático a partir do GitHub.</p>
+      </div>
+    </div>
+
+    <h2>Inteligência Artificial</h2>
+    <p>
+      O Claude (Anthropic) foi utilizado como assistente de desenvolvimento para gerar a estrutura
+      inicial do código (front-end, back-end e banco de dados) e a documentação do projeto.
+    </p>
+  </main>
+
+  <footer class="footer">
+    <p>MeuFlix &middot; Projeto acadêmico de simulação de infraestrutura</p>
+  </footer>
+</body>
+</html>
