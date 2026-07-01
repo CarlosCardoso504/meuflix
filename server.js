@@ -5,6 +5,7 @@ const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const pool = require('./db/db');
 
@@ -48,33 +49,123 @@ const upload = multer({
   }
 });
 
+// ---------- Helpers ----------
+function gerarSlug() {
+  // string curta e amigável para URL pública, ex: "a1b2c3d4"
+  return crypto.randomBytes(6).toString('hex');
+}
+
+function gerarEditToken() {
+  // chave secreta bem maior, praticamente impossível de adivinhar
+  return crypto.randomBytes(24).toString('hex');
+}
+
+// Confirma que quem está chamando a rota tem a chave secreta da página
+async function requireEditToken(req, res, next) {
+  try {
+    const { slug } = req.params;
+    const token = req.header('x-edit-token') || '';
+
+    const result = await pool.query('SELECT * FROM pages WHERE slug = $1', [slug]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Página não encontrada' });
+    }
+
+    const page = result.rows[0];
+    if (!token || token !== page.edit_token) {
+      return res.status(401).json({ error: 'Link de edição inválido' });
+    }
+
+    req.page = page;
+    next();
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao validar acesso' });
+  }
+}
+
 // ---------- Inicialização do banco ----------
 async function initDb() {
   const sql = fs.readFileSync(path.join(__dirname, 'db', 'init.sql'), 'utf8');
   await pool.query(sql);
-  console.log('[OK] Tabela "videos" verificada/criada com sucesso.');
+  console.log('[OK] Tabelas "pages" e "videos" verificadas/criadas com sucesso.');
 }
 
 // ---------- Rotas da API ----------
 
-// Health check (útil para monitoramento do provedor de nuvem)
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
-// Listar todos os vídeos
-app.get('/api/videos', async (req, res) => {
+// Criar uma nova página (gera slug público + token secreto de edição)
+app.post('/api/pages', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM videos ORDER BY created_at DESC');
-    res.json(result.rows);
+    const { title } = req.body;
+    const slug = gerarSlug();
+    const editToken = gerarEditToken();
+
+    const result = await pool.query(
+      `INSERT INTO pages (slug, edit_token, title) VALUES ($1, $2, $3) RETURNING *`,
+      [slug, editToken, (title || 'Minha página').slice(0, 200)]
+    );
+
+    const page = result.rows[0];
+    res.status(201).json({
+      slug: page.slug,
+      editToken: page.edit_token,
+      title: page.title
+    });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Erro ao buscar vídeos' });
+    res.status(500).json({ error: 'Erro ao criar página' });
   }
 });
 
-// Buscar um vídeo específico
-app.get('/api/videos/:id', async (req, res) => {
+// Buscar dados públicos de uma página (título + lista de vídeos) — sem expor o edit_token
+app.get('/api/pages/:slug', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM videos WHERE id = $1', [req.params.id]);
+    const pageResult = await pool.query('SELECT id, slug, title, created_at FROM pages WHERE slug = $1', [req.params.slug]);
+    if (pageResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Página não encontrada' });
+    }
+    const page = pageResult.rows[0];
+
+    const videosResult = await pool.query(
+      'SELECT id, title, description, thumbnail_path, video_path, created_at FROM videos WHERE page_id = $1 ORDER BY created_at DESC',
+      [page.id]
+    );
+
+    res.json({ ...page, videos: videosResult.rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erro ao buscar página' });
+  }
+});
+
+// Confirma se um edit_token é válido para um slug (usado pelo front-end para liberar o modo de edição)
+app.post('/api/pages/:slug/verificar', async (req, res) => {
+  try {
+    const token = req.header('x-edit-token') || '';
+    const result = await pool.query('SELECT edit_token FROM pages WHERE slug = $1', [req.params.slug]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ valido: false });
+    }
+    res.json({ valido: token === result.rows[0].edit_token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ valido: false });
+  }
+});
+
+// Buscar um vídeo específico de uma página (público, usado na página de assistir)
+app.get('/api/pages/:slug/videos/:videoId', async (req, res) => {
+  try {
+    const pageResult = await pool.query('SELECT id FROM pages WHERE slug = $1', [req.params.slug]);
+    if (pageResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Página não encontrada' });
+    }
+    const result = await pool.query(
+      'SELECT * FROM videos WHERE id = $1 AND page_id = $2',
+      [req.params.videoId, pageResult.rows[0].id]
+    );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Vídeo não encontrado' });
     }
@@ -85,9 +176,10 @@ app.get('/api/videos/:id', async (req, res) => {
   }
 });
 
-// Cadastrar novo vídeo (título + descrição + capa + arquivo de vídeo)
+// Adicionar vídeo a uma página (exige o token secreto de edição)
 app.post(
-  '/api/videos',
+  '/api/pages/:slug/videos',
+  requireEditToken,
   upload.fields([
     { name: 'thumbnail', maxCount: 1 },
     { name: 'video', maxCount: 1 }
@@ -104,9 +196,9 @@ app.post(
       const videoPath = '/uploads/' + req.files.video[0].filename;
 
       const result = await pool.query(
-        `INSERT INTO videos (title, description, thumbnail_path, video_path)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [title, description || '', thumbnailPath, videoPath]
+        `INSERT INTO videos (page_id, title, description, thumbnail_path, video_path)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [req.page.id, title, description || '', thumbnailPath, videoPath]
       );
 
       res.status(201).json(result.rows[0]);
@@ -117,14 +209,16 @@ app.post(
   }
 );
 
-// Remover vídeo
-app.delete('/api/videos/:id', async (req, res) => {
+// Remover vídeo de uma página (exige o token secreto de edição)
+app.delete('/api/pages/:slug/videos/:videoId', requireEditToken, async (req, res) => {
   try {
-    const result = await pool.query('DELETE FROM videos WHERE id = $1 RETURNING *', [req.params.id]);
+    const result = await pool.query(
+      'DELETE FROM videos WHERE id = $1 AND page_id = $2 RETURNING *',
+      [req.params.videoId, req.page.id]
+    );
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Vídeo não encontrado' });
     }
-    // remove os arquivos físicos do disco
     [result.rows[0].thumbnail_path, result.rows[0].video_path].forEach((p) => {
       const fullPath = path.join(__dirname, p);
       fs.unlink(fullPath, () => {});

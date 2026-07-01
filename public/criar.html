@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MeuFlix - Criar minha página</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="header">
+    <a href="index.html" class="logo">MEUFLIX</a>
+  </header>
+
+  <main class="form-wrapper" id="criar-area">
+    <h1>Criar sua página</h1>
+    <p class="subtitle">Dê um nome para a sua página. Depois de criada, você poderá adicionar quantos vídeos quiser.</p>
+
+    <form id="form-criar">
+      <div class="form-group">
+        <label for="title">Nome da página</label>
+        <input type="text" id="title" name="title" required maxlength="200" placeholder='Ex: "Para Você", "Nosso Amor", "Feliz Aniversário"'>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submit-btn">Criar página</button>
+      <div class="status-msg" id="status-msg"></div>
+    </form>
+  </main>
+
+  <script src="js/criar.js"></script>
+</body>
+</html>

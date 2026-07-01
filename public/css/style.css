@@ -201,6 +201,12 @@ a {
   box-shadow: 0 10px 25px rgba(0,0,0,0.6);
 }
 
+.card > a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .card img {
   width: 100%;
   height: 100%;
@@ -226,6 +232,31 @@ a {
 .card-overlay span {
   font-weight: 600;
   font-size: 0.95rem;
+}
+
+.btn-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.65);
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s;
+  z-index: 6;
+}
+
+.card:hover .btn-remove {
+  opacity: 1;
+}
+
+.btn-remove:hover {
+  background: var(--vermelho);
 }
 
 /* ---------- FOOTER ---------- */
@@ -448,6 +479,85 @@ a {
   border-radius: 20px;
   margin: 4px 6px 4px 0;
   font-size: 0.85rem;
+}
+
+/* ---------- LANDING PAGE ---------- */
+.landing {
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px 40px;
+  text-align: center;
+  background: radial-gradient(circle at 50% 0%, rgba(229,9,20,0.12), transparent 60%);
+}
+
+.landing-content {
+  max-width: 640px;
+}
+
+.landing-title {
+  font-size: 2.6rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  line-height: 1.25;
+}
+
+.landing-desc {
+  color: #d2d2d2;
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+.landing-btn {
+  font-size: 1.1rem;
+  padding: 16px 36px;
+}
+
+/* ---------- LINK BOX (links de compartilhar / editar) ---------- */
+.link-box {
+  background: var(--preto-claro);
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.link-box h3 {
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.link-copy {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.link-copy input {
+  flex: 1;
+  padding: 10px 12px;
+  background: var(--preto);
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: var(--branco);
+  font-size: 0.85rem;
+}
+
+.link-copy button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 4px;
+  background: var(--vermelho);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.link-copy button:hover {
+  background: #b8070f;
 }
 
 /* ---------- RESPONSIVO ---------- */

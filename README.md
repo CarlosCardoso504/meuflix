@@ -1,6 +1,21 @@
 # MeuFlix 🎬
 
-Plataforma de streaming de **vídeos próprios** (não é YouTube embutido — o usuário sobe o arquivo de vídeo dele mesmo), com visual estilo Netflix. Projeto feito para simular a infraestrutura de tecnologia de uma startup/empresa.
+Plataforma onde **qualquer pessoa cria sua própria página** de vídeos estilo Netflix, com fotos, títulos e vídeos que ela mesma sobe (não é embed do YouTube).
+
+## Como funciona
+
+1. A pessoa acessa o site e clica em **"Criar minha página grátis"**
+2. Dá um nome para a página (ex: "Para Você", "Nosso Amor")
+3. O site gera automaticamente **dois links diferentes**:
+   - 🔒 **Link secreto de edição** — só ela tem. Usado para adicionar ou remover vídeos a qualquer momento.
+   - 🎁 **Link público** — para compartilhar com quem vai receber o presente. Esse link só permite assistir, não permite editar.
+4. Cada página é completamente isolada das outras — ninguém consegue ver ou mexer na página de outra pessoa sem o link secreto dela.
+
+Não existe senha nem cadastro/login: a segurança é feita através de um código secreto e praticamente impossível de adivinhar, embutido no link de edição.
+
+---
+
+## Stack
 
 - Front-end: HTML, CSS e JavaScript puro
 - Back-end: Node.js + Express (API REST)
@@ -9,12 +24,9 @@ Plataforma de streaming de **vídeos próprios** (não é YouTube embutido — o
 
 ---
 
-## 1. Rodando localmente (para testar antes do deploy)
-
-Pré-requisitos: [Node.js 18+](https://nodejs.org) instalado e um banco PostgreSQL (pode ser local ou já na nuvem, ver passo 2).
+## 1. Rodando localmente
 
 ```bash
-# dentro da pasta do projeto
 npm install
 cp .env.example .env
 # edite o .env e cole sua DATABASE_URL
@@ -25,43 +37,26 @@ Acesse **http://localhost:3000**
 
 ---
 
-## 2. Colocando o site no ar de verdade (deploy gratuito)
-
-A stack abaixo é 100% gratuita e é a que está descrita na página "Sobre" do site. Leva uns 15-20 minutos.
+## 2. Deploy gratuito (Render)
 
 ### Passo 1 — Subir o código no GitHub
-1. Crie uma conta em [github.com](https://github.com) (se ainda não tiver).
-2. Crie um repositório novo (ex: `meuflix`) e suba a pasta inteira deste projeto para ele.
+Crie um repositório e suba todos os arquivos do projeto (com `package.json`, `server.js` e a pasta `public` direto na raiz do repositório).
 
-### Passo 2 — Criar o banco de dados (PostgreSQL) na Render
-1. Crie uma conta em [render.com](https://render.com) (dá para entrar com GitHub).
-2. No painel, clique em **New +** → **PostgreSQL**.
-3. Dê um nome (ex: `meuflix-db`), escolha a região mais próxima e o plano **Free**.
-4. Após criar, copie o campo **Internal Database URL** (ou **External Database URL** se for testar localmente) — você vai usar isso na variável `DATABASE_URL`.
+### Passo 2 — Criar o banco (PostgreSQL) na Render
+1. [render.com](https://render.com) → **New +** → **PostgreSQL**
+2. Nome: `meuflix-db`, plano **Free**
+3. Depois de criado, copie a **Internal Database URL**
 
-### Passo 3 — Criar o Web Service (o servidor da aplicação)
-1. No painel da Render, clique em **New +** → **Web Service**.
-2. Conecte o repositório do GitHub que você criou no passo 1.
-3. Configure:
-   - **Name**: `meuflix`
-   - **Region**: a mesma do banco de dados
-   - **Runtime**: Node
-   - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
-   - **Plan**: Free
+### Passo 3 — Criar o Web Service
+1. **New +** → **Web Service** → conecte seu repositório do GitHub
+2. **Build Command**: `npm install`
+3. **Start Command**: `npm start`
 4. Em **Environment Variables**, adicione:
-   - `DATABASE_URL` → cole a Internal Database URL copiada no passo 2
+   - `DATABASE_URL` → cole a Internal Database URL do passo 2
    - `DB_SSL` → `true`
-5. Clique em **Create Web Service**. A Render vai instalar as dependências e ligar o servidor automaticamente.
-6. Quando o deploy terminar, a Render te dá um link tipo `https://meuflix.onrender.com` — **esse é o link que você vai entregar no trabalho**.
+5. Crie o serviço. Quando o deploy terminar, você recebe o link (ex: `https://meuflix.onrender.com`) — esse é o link inicial do site, onde qualquer pessoa pode clicar em "Criar minha página".
 
-> ⚠️ No plano gratuito da Render, o disco onde ficam os vídeos enviados (`/uploads`) é apagado quando o serviço reinicia ou faz um novo deploy. Para o trabalho da faculdade isso normalmente não é problema (você sobe os vídeos de demonstração e já entrega o link). Se quiser armazenamento permanente, veja a seção "Upgrade opcional" abaixo.
-
-### Passo 4 (opcional, mas recomendado para o item "Firewall" e "DNS" do trabalho) — Cloudflare
-1. Crie uma conta gratuita em [cloudflare.com](https://cloudflare.com).
-2. Se você tiver um domínio próprio, aponte o DNS dele para a Cloudflare e crie um registro `CNAME` apontando para `meuflix.onrender.com`.
-3. Ative o modo de proxy (ícone de nuvem laranja) — isso liga automaticamente o **firewall/WAF e a proteção contra DDoS** da Cloudflare na frente do seu site.
-4. Caso não tenha domínio próprio, não tem problema: o link `onrender.com` já funciona e já passa pela proteção de borda da própria Render. Nesse caso, no relatório, explique que o "firewall" usado foi o da própria Render (isolamento de rede do container) e a opção Cloudflare fica como evolução futura.
+> ⚠️ No plano gratuito da Render, o disco de uploads é apagado quando o serviço reinicia. Para o trabalho isso normalmente não é problema, mas vídeos enviados há muito tempo sem uso do site podem ser perdidos num redeploy. Veja a seção de upgrade opcional no final.
 
 ---
 
@@ -69,29 +64,26 @@ A stack abaixo é 100% gratuita e é a que está descrita na página "Sobre" do 
 
 ```
 meuflix/
-├── server.js          # servidor Express e rotas da API
+├── server.js               # servidor Express e rotas da API
 ├── package.json
-├── .env.example
 ├── db/
-│   ├── db.js           # conexão com o PostgreSQL
-│   └── init.sql        # criação da tabela "videos"
-├── uploads/             # onde ficam as imagens/vídeos enviados
+│   ├── db.js                 # conexão com o PostgreSQL
+│   └── init.sql               # criação das tabelas "pages" e "videos"
+├── uploads/                    # imagens/vídeos enviados
 └── public/
-    ├── index.html        # página inicial (estilo Netflix)
-    ├── add.html           # formulário para subir um novo vídeo
-    ├── watch.html          # página de reprodução do vídeo
-    ├── sobre.html           # equipe, tecnologias e infraestrutura
+    ├── index.html                 # landing page ("Criar minha página")
+    ├── criar.html                  # formulário de criação da página
+    ├── pagina.html                  # galeria de vídeos (estilo Netflix)
+    ├── adicionar.html                # formulário de adicionar vídeo (exige link secreto)
+    ├── assistir.html                  # player de vídeo
     ├── css/style.css
-    └── js/ (main.js, add.js, watch.js)
+    └── js/ (paginaComum.js, criar.js, pagina.js, adicionar.js, assistir.js)
 ```
 
-## 4. Antes de entregar, não esqueça de:
+## 4. Como a segurança funciona (para explicar no trabalho)
 
-1. Editar `public/sobre.html` e preencher o nome da equipe e dos integrantes (procure por `[PREENCHER]`).
-2. Subir pelo menos 1 ou 2 vídeos de teste pelo formulário "Adicionar vídeo" no site já no ar, para a tela não ficar vazia.
-3. Conferir se o link `https://seu-app.onrender.com` abre normalmente (a primeira vez pode demorar ~30s para "acordar", pois o plano free hiberna o serviço quando ele fica sem uso).
-4. Entregar o link do site funcionando, como pedido no enunciado.
+Cada página no banco de dados tem duas colunas importantes: `slug` (um código curto, público, que aparece no link compartilhável) e `edit_token` (um código bem mais longo e aleatório, que fica só no link secreto de edição). Toda ação de adicionar ou remover vídeo no back-end exige que o `edit_token` correto seja enviado num cabeçalho da requisição (`x-edit-token`); sem ele, a API responde com erro 401 (não autorizado). Isso é o que garante que só quem tem o link secreto consegue editar aquela página específica.
 
 ## 5. Upgrade opcional — armazenamento permanente de vídeo
 
-Se quiser que os vídeos não somem após um reinício do servidor, é possível trocar o armazenamento local por um serviço de mídia na nuvem, como o **Cloudinary** (plano gratuito, 25GB), e salvar no banco apenas a URL do arquivo em vez do caminho local. Isso não é obrigatório para o trabalho, mas é uma boa evolução para citar na apresentação.
+Para os vídeos não sumirem após um reinício do servidor, é possível trocar o armazenamento local por um serviço de mídia na nuvem, como o **Cloudinary** (plano gratuito, 25GB), salvando no banco apenas a URL do arquivo.

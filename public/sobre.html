@@ -15,44 +15,48 @@
     <ul class="nav-links">
       <li><a href="index.html">Início</a></li>
       <li><a href="sobre.html">Sobre</a></li>
-      <li><a href="add.html" class="btn-add">+ Adicionar vídeo</a></li>
     </ul>
   </header>
 
   <main class="sobre-wrapper">
     <h1>Sobre o MeuFlix</h1>
     <p>
-      O MeuFlix é uma plataforma de streaming de vídeos próprios, inspirada visualmente na Netflix,
-      desenvolvida como simulação da infraestrutura de tecnologia de uma startup. Qualquer pessoa pode
-      subir um título, uma capa e o seu próprio vídeo, sem depender de serviços externos como o YouTube.
+      O MeuFlix é uma plataforma onde qualquer pessoa cria sua própria página de vídeos estilo Netflix,
+      com fotos, título e vídeos que ela mesma sobe — sem depender do YouTube. Cada página é privada e
+      isolada das demais: o link secreto de edição é gerado automaticamente e é o que garante que só o
+      criador da página consiga adicionar ou remover vídeos.
     </p>
 
     <h2>Equipe</h2>
     <p>
       <!-- EDITE AQUI com o nome da equipe e integrantes -->
-      <span class="team-tag">Nome da equipe: [PREENCHER]</span>
-      <span class="team-tag">Integrante 1: [PREENCHER]</span>
-      <span class="team-tag">Integrante 2: [PREENCHER]</span>
-      <span class="team-tag">Integrante 3: [PREENCHER]</span>
+      <span class="team-tag">Nome da equipe: Meuflix</span>
+      <span class="team-tag">Integrante 1: Carlos Matheus Cardoso</span>
+      <span class="team-tag">Integrante 2: Caetano Pavan </span>
+      <span class="team-tag">Integrante 3: Pedro Peruzzo </span>
     </p>
 
     <h2>Tecnologias usadas</h2>
     <ul>
       <li><strong>Front-end:</strong> HTML5, CSS3 e JavaScript puro (sem frameworks), com layout responsivo inspirado no estilo Netflix.</li>
-      <li><strong>Back-end:</strong> Node.js com o framework Express.js, responsável pela API REST que cadastra e lista os vídeos.</li>
-      <li><strong>Banco de dados:</strong> PostgreSQL, armazenando título, descrição e o caminho dos arquivos de cada vídeo.</li>
+      <li><strong>Back-end:</strong> Node.js com o framework Express.js, responsável pela API REST que cria páginas e cadastra/lista/remove vídeos.</li>
+      <li><strong>Banco de dados:</strong> PostgreSQL, com duas tabelas relacionadas: <code>pages</code> (cada página criada, com um código público e uma chave secreta de edição) e <code>videos</code> (cada vídeo, vinculado à sua página).</li>
       <li><strong>Upload de arquivos:</strong> biblioteca Multer, que recebe a imagem de capa e o vídeo enviados pelo formulário.</li>
+      <li><strong>Segurança:</strong> módulo nativo <code>crypto</code> do Node.js, usado para gerar os códigos aleatórios que identificam cada página e sua chave secreta de edição.</li>
     </ul>
 
     <h2>Como foi feito</h2>
     <p>
       O projeto foi construído em três camadas. A camada de <em>apresentação</em> é um site estático
       (HTML/CSS/JS) que consome uma API. A camada de <em>aplicação</em> é um servidor Node.js/Express
-      que expõe rotas para listar vídeos (<code>GET /api/videos</code>), buscar um vídeo específico
-      (<code>GET /api/videos/:id</code>) e cadastrar um novo vídeo (<code>POST /api/videos</code>),
-      recebendo a imagem e o vídeo via upload multipart. A camada de <em>dados</em> é um banco
-      PostgreSQL, onde cada vídeo cadastrado vira uma linha na tabela <code>videos</code>. Todo o código
-      foi versionado e implantado em um provedor de nuvem, conforme detalhado abaixo.
+      que expõe rotas para criar páginas (<code>POST /api/pages</code>), listar os vídeos de uma página
+      (<code>GET /api/pages/:slug</code>), adicionar um vídeo (<code>POST /api/pages/:slug/videos</code>)
+      e remover um vídeo (<code>DELETE /api/pages/:slug/videos/:id</code>). As rotas de adicionar e
+      remover exigem uma chave secreta (<code>edit_token</code>) enviada num cabeçalho da requisição —
+      sem ela, o servidor recusa a ação. A camada de <em>dados</em> é um banco PostgreSQL, onde cada
+      página vira uma linha na tabela <code>pages</code> e cada vídeo uma linha na tabela
+      <code>videos</code>, vinculada à sua página. Todo o código foi versionado e implantado em um
+      provedor de nuvem, conforme detalhado abaixo.
     </p>
 
     <h2>Infraestrutura utilizada</h2>
@@ -73,7 +77,7 @@
       </div>
       <div class="infra-card">
         <h3>Banco de Dados</h3>
-        <p>PostgreSQL gerenciado (Render Postgres), armazenando os metadados de cada vídeo publicado na plataforma.</p>
+        <p>PostgreSQL gerenciado (Render Postgres), armazenando as páginas criadas e os vídeos de cada uma delas.</p>
       </div>
       <div class="infra-card">
         <h3>Firewall</h3>
