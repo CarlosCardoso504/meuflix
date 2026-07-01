@@ -95,6 +95,16 @@ async function initDb() {
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
+// ROTA TEMPORÁRIA DE DEBUG - remover depois de resolver o problema
+   app.get('/api/debug/pages', async (req, res) => {
+     try {
+       const result = await pool.query('SELECT id, slug, title, created_at FROM pages ORDER BY created_at DESC');
+       res.json(result.rows);
+     } catch (err) {
+       res.status(500).json({ error: err.message });
+     }
+   });
+
 // Criar uma nova página (gera slug público + token secreto de edição)
 app.post('/api/pages', async (req, res) => {
   try {
