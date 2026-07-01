@@ -22,3 +22,9 @@ CREATE TABLE IF NOT EXISTS videos (
     video_path VARCHAR(500) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+-- Corrige bancos que já tinham a tabela "videos" criada antes de existir a coluna page_id
+ALTER TABLE videos ADD COLUMN IF NOT EXISTS page_id INTEGER REFERENCES pages(id) ON DELETE CASCADE;
+-- Remove vídeos antigos que ficaram sem página associada (dados de teste da versão anterior)
+DELETE FROM videos WHERE page_id IS NULL;
+ALTER TABLE videos ALTER COLUMN page_id SET NOT NULL;
