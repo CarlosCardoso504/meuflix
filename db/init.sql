@@ -4,10 +4,13 @@
 CREATE TABLE IF NOT EXISTS pages (
     id SERIAL PRIMARY KEY,
     slug VARCHAR(20) UNIQUE NOT NULL,
-    edit_token VARCHAR(40) UNIQUE NOT NULL,
+    edit_token VARCHAR(64) UNIQUE NOT NULL,
     title VARCHAR(200) NOT NULL DEFAULT 'Minha página',
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
+
+-- Corrige bancos que já foram criados antes com a coluna menor (40 caracteres)
+ALTER TABLE pages ALTER COLUMN edit_token TYPE VARCHAR(64);
 
 -- Cada vídeo pertence a uma única página (page_id)
 CREATE TABLE IF NOT EXISTS videos (
