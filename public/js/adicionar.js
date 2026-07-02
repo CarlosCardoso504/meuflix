@@ -1,50 +1,45 @@
 const formArea = document.getElementById('form-area');
 let slug = null;
-let token = null;
+let chave = null;
 
 async function iniciar() {
   slug = getSlugDaUrl();
+  chave = getChaveDaUrl();
 
   if (!slug) {
     formArea.innerHTML = '<h1>Link inválido</h1><p>Não foi possível identificar a página.</p>';
     return;
   }
 
-  salvarTokenDaUrlSeExistir(slug);
-  token = getTokenSalvo(slug);
-
-  if (!token) {
+  if (!chave) {
     formArea.innerHTML = `
       <h1>Você não tem permissão para editar esta página</h1>
-      <p class="subtitle">Cole abaixo o seu link secreto de edição (o que você recebeu ao criar a página) para continuar.</p>
+      <p class="subtitle">Cole abaixo o seu link secreto de edição completo (o que você recebeu ao criar a página) para continuar.</p>
       <div class="form-group">
-        <input type="text" id="token-manual" placeholder="Cole aqui seu link ou chave secreta">
+        <input type="text" id="link-manual" placeholder="Cole aqui seu link secreto completo">
       </div>
-      <button class="submit-btn" id="btn-confirmar-token">Confirmar</button>
+      <button class="submit-btn" id="btn-confirmar-link">Confirmar</button>
     `;
-    document.getElementById('btn-confirmar-token').addEventListener('click', () => {
-      const valor = document.getElementById('token-manual').value.trim();
-      // aceita tanto a chave sozinha quanto o link completo colado
+    document.getElementById('btn-confirmar-link').addEventListener('click', () => {
+      const valor = document.getElementById('link-manual').value.trim();
       const match = valor.match(/chave=([a-f0-9]+)/);
       const chaveExtraida = match ? match[1] : valor;
       if (chaveExtraida) {
-        localStorage.setItem('meuflix_token_' + slug, chaveExtraida);
-        iniciar();
+        window.location.href = `adicionar.html?slug=${slug}&chave=${chaveExtraida}`;
       }
     });
     return;
   }
 
-  // valida o token com o servidor antes de mostrar o formulário
+  // valida a chave com o servidor antes de mostrar o formulário
   try {
     const res = await fetch(`/api/pages/${slug}/verificar`, {
       method: 'POST',
-      headers: { 'x-edit-token': token }
+      headers: { 'x-edit-token': chave }
     });
     const data = await res.json();
     if (!data.valido) throw new Error('inválido');
   } catch (err) {
-    localStorage.removeItem('meuflix_token_' + slug);
     formArea.innerHTML = '<h1>Link secreto inválido</h1><p>Verifique se você colou o link certo.</p>';
     return;
   }
@@ -84,7 +79,7 @@ function mostrarFormulario() {
       <div class="status-msg" id="status-msg"></div>
     </form>
 
-    <a href="pagina.html?slug=${slug}" class="back-link" style="display:block; margin-top:16px;">&larr; Voltar para a página</a>
+    <a href="pagina.html?slug=${slug}&chave=${chave}" class="back-link" style="display:block; margin-top:16px;">&larr; Voltar para a página</a>
   `;
 
   const form = document.getElementById('form-video');
@@ -102,7 +97,7 @@ function mostrarFormulario() {
     try {
       const res = await fetch(`/api/pages/${slug}/videos`, {
         method: 'POST',
-        headers: { 'x-edit-token': token },
+        headers: { 'x-edit-token': chave },
         body: formData
       });
 
@@ -113,7 +108,7 @@ function mostrarFormulario() {
       statusMsg.textContent = 'Vídeo publicado com sucesso! Redirecionando...';
 
       setTimeout(() => {
-        window.location.href = `pagina.html?slug=${slug}`;
+        window.location.href = `pagina.html?slug=${slug}&chave=${chave}`;
       }, 1200);
 
     } catch (err) {

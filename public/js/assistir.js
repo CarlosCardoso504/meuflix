@@ -1,6 +1,7 @@
 async function iniciar() {
   const area = document.getElementById('watch-area');
   const slug = getSlugDaUrl();
+  const chave = getChaveDaUrl();
   const videoId = new URLSearchParams(window.location.search).get('v');
 
   if (!slug || !videoId) {
@@ -8,28 +9,27 @@ async function iniciar() {
     return;
   }
 
-  const token = getTokenSalvo(slug);
-  const modoEdicao = false; // verificado abaixo, se necessário
-
   try {
     const res = await fetch(`/api/pages/${slug}/videos/${videoId}`);
     if (!res.ok) throw new Error();
     const v = await res.json();
 
     let podeEditar = false;
-    if (token) {
+    if (chave) {
       try {
         const verifRes = await fetch(`/api/pages/${slug}/verificar`, {
           method: 'POST',
-          headers: { 'x-edit-token': token }
+          headers: { 'x-edit-token': chave }
         });
         const verifData = await verifRes.json();
         podeEditar = !!verifData.valido;
       } catch (e) { /* ignora */ }
     }
 
+    const linkVoltar = podeEditar ? `pagina.html?slug=${slug}&chave=${chave}` : `pagina.html?slug=${slug}`;
+
     area.innerHTML = `
-      <a href="pagina.html?slug=${slug}" class="back-link">&larr; Voltar para a página</a>
+      <a href="${linkVoltar}" class="back-link">&larr; Voltar para a página</a>
       <video class="video-player" src="${v.video_path}" controls autoplay></video>
       <div class="watch-info">
         <h1>${escapeHtml(v.title)}</h1>
@@ -43,10 +43,10 @@ async function iniciar() {
         if (!confirm('Remover este vídeo? Essa ação não pode ser desfeita.')) return;
         const delRes = await fetch(`/api/pages/${slug}/videos/${videoId}`, {
           method: 'DELETE',
-          headers: { 'x-edit-token': token }
+          headers: { 'x-edit-token': chave }
         });
         if (delRes.ok) {
-          window.location.href = `pagina.html?slug=${slug}`;
+          window.location.href = linkVoltar;
         } else {
           alert('Não foi possível remover o vídeo.');
         }
